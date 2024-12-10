@@ -1,0 +1,98 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+    <!-- For alert messages -->  
+    {% if messages %}
+        {% for message in messages %}
+            <div class="w3-container">
+                <div class="messages w3-panel w3-pale-green w3-display-container">
+                    <span onclick="this.parentElement.style.display='none'"
+                            class="w3-button w3-medium w3-display-topright">&times;</span>
+                    <p class="{{ message.tags }}">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Flex-container -->
+    <div class="post-flex-container">
+
+        <!-- To make a new post -->
+        {% if user.is_authenticated %}
+        
+            <div>
+                <h3>New Post</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.content }}
+                    <input type="submit" class="w3-button w3-round-xlarge w3-blue" style="float:right;margin:10px 0" value="Post" />
+                </form>
+            </div>
+
+        {% endif %}
+
+        <!-- Display all posts -->
+        {% for post in page_obj %}
+            <div style="border: 1px solid #cccccc; margin-bottom: 5px; padding: 5px ">
+                <span><a href="{% url 'profile' post.user.id %}">{{ post.user.username.capitalize }}</a></span>
+                <span class="meta-faint-small">{{ post.timestamp }}</span>
+                <p style="margin-top:16px" id="post-display-{{ post.id }}">{{ post.content }}</p>
+
+                {% if post.user == request.user %}
+                    <button id="edit-button" onclick="edit_post({{ post.id }})">Edit</button>
+                {% endif %}
+
+                {% if user in post.likes.all %}
+                    <button class="w3-button w3-padding-small w3-small w3-round-large w3-pale-red" id="like-button-{{ post.id }}" onclick="like_unlike_post(user='{{ user.username }}', post_id={{ post.id }})">Unlike</button>
+                {% else %}
+                    <button class="w3-button w3-padding-small w3-small w3-round-large w3-pale-red" id="like-button-{{ post.id }}" onclick="like_unlike_post(user='{{ user.username }}', post_id={{ post.id }})">Like</button>
+                {% endif %}
+
+                <span id="post-likes-{{ post.id }}">{{ post.likes.all.count }}</span>
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- Pagination buttons -->
+    <div class="w3-center">
+        <div>
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Modal for editing posts -->
+    <div id="edit-post-box" class="w3-modal">
+        <div class="w3-modal-content" style="padding-top:16px">
+            <div class="w3-container">
+                <span onclick="document.getElementById('edit-post-box').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <form id="edit-post-form">
+                    <label>Edit your post</label>
+                    <p><textarea id="edit-post-field" rows="2" class="w3-input w3-border"></textarea></p>
+                    <button type="submit" id="submit-edited-post" class="w3-button w3-round-xlarge w3-blue">Post</button>
+                </form><br />
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/index.js' %}"></script>
+{% endblock %}

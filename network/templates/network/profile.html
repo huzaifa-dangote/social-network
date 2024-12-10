@@ -1,0 +1,101 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+    <!-- For alert messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="w3-container">
+                <div class="messages w3-panel w3-pale-green w3-display-container">
+                    <span onclick="this.parentElement.style.display='none'"
+                          class="w3-button w3-medium w3-display-topright">&times;</span>
+                    <p class="{{ message.tags }}">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Flex-container -->
+    <div class="post-flex-container">
+
+    
+
+    <!-- Profile information -->
+    <div>
+        <div style="margin-top:16px">
+            {{ profile_user.username.capitalize }}
+            
+            <!-- Follow or unfollow other users -->
+            {% if user.is_authenticated and user != profile_user %}
+                {% if user in profile_user.followers.all %}
+                    <form style="display: inline-block;" action="{% url 'profile' profile_user.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="unfollow" value="unfollow" />
+                        <button class="w3-button w3-padding-small w3-round-xlarge w3-white w3-border" type="submit">Unfollow</button>
+                    </form>
+                {% else %}
+                    <form style="display: inline-block;" action="{% url 'profile' profile_user.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="follow" value="follow"/>
+                        <button class="w3-button w3-padding-small w3-round-xlarge w3-white w3-border" type="submit">Follow</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+
+        </div>
+        <p>
+            <span>{{ no_of_following }} Following</span>
+            <span>{{ no_of_followers }} Followers</span>
+        </p>
+    </div>
+
+    <!-- User posts -->
+    {% for post in page_obj %}
+        <div style="border: 1px solid #cccccc; margin-bottom: 5px; padding: 5px ">
+            <span><a href="{% url 'profile' post.user.id %}">{{ post.user.username.capitalize }}</a></span>
+            <span class="meta-faint-small">{{ post.timestamp }}</span>
+            <p style="margin-top:16px" id="post-display-{{ post.id }}">{{ post.content }}</p>
+
+            {% if post.user == request.user %}
+                <button id="edit-button" onclick="edit_post({{ post.id }})">Edit</button>
+            {% endif %}
+
+            {% if user in post.likes.all %}
+                <button class="w3-button w3-padding-small w3-small w3-round-large w3-pale-red" id="like-button-{{ post.id }}" onclick="like_unlike_post(user='{{ user.username }}', post_id={{ post.id }})">Unlike</button>
+            {% else %}
+                <button class="w3-button w3-padding-small w3-small w3-round-large w3-pale-red" id="like-button-{{ post.id }}" onclick="like_unlike_post(user='{{ user.username }}', post_id={{ post.id }})">Like</button>
+            {% endif %}
+
+            <span id="post-likes-{{ post.id }}">{{ post.likes.all.count }}</span>
+        </div>
+    {% endfor %}
+
+    </div>
+
+    <!-- Pagination buttons -->
+    <div class="w3-center">
+        <div>
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/index.js' %}"></script>
+{% endblock %}

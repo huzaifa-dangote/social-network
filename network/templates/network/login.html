@@ -1,0 +1,36 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+    <div class="flex-container">
+
+        <div class="flex-item w3-border" style="padding-bottom:10px">
+
+            {% if message %}
+                <div>{{ message }}</div>
+            {% endif %}
+
+            <div class="w3-container w3-dark-grey" style="text-align:center">
+                <h2>Login</h2>
+            </div>
+            <form class="w3-container" action="{% url 'login' %}" method="post">
+                {% csrf_token %}
+                <p>
+                    <label class="w3-text-dark-grey"><b>Username</b></label>
+                    <input autofocus class="w3-input w3-border w3-sand" type="text" name="username">
+                </p>
+                <p>
+                    <label class="w3-text-dark-grey"><b>Password</b></label>
+                    <input class="w3-input w3-border w3-sand" type="password" name="password">
+                </p>
+                <p style="text-align:center">
+                    <button class="w3-button w3-dark-grey" type="submit">Login</button>
+                </p>
+            </form>
+            <div class="w3-container">
+                Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
